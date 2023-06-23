@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import * as tf from '@tensorflow/tfjs';
+import React, { useState, useEffect } from "react";
+import * as tf from "@tensorflow/tfjs";
 
 const ButtonComponent: React.FC = () => {
   const [model, setModel] = useState<tf.LayersModel | null>(null);
-  const [inputText, setInputText] = useState('');
-  const [prediction, setPrediction] = useState('');
+  const [inputText, setInputText] = useState("");
+  const [prediction, setPrediction] = useState("");
 
   useEffect(() => {
     loadModelFromStorage();
@@ -12,11 +12,11 @@ const ButtonComponent: React.FC = () => {
 
   const loadModelFromStorage = async () => {
     try {
-      const loadedModel = await tf.loadLayersModel('localstorage://my-model');
+      const loadedModel = await tf.loadLayersModel("localstorage://my-model");
       setModel(loadedModel);
-      console.log('Model loaded from storage');
+      console.log("Model loaded from storage");
     } catch (error) {
-      console.log('No model found in storage. Training new model...');
+      console.log("No model found in storage. Training new model...");
       trainModel();
     }
   };
@@ -26,12 +26,22 @@ const ButtonComponent: React.FC = () => {
     // Replace with your own training logic
     const model = tf.sequential();
     model.add(tf.layers.dense({ units: 1, inputShape: [1] }));
-    model.compile({ optimizer: 'sgd', loss: 'meanSquaredError' });
+    model.compile({ optimizer: "sgd", loss: "meanSquaredError" });
     const xs = tf.tensor2d([1, 2, 3, 4], [4, 1]);
-    const ys = tf.tensor2d([1, 3, 5, 7], [4, 1]);
+    const ys = tf.tensor2d([1, 4, 6, 8], [4, 1]);
     await model.fit(xs, ys, { epochs: 10 });
     setModel(model);
-    console.log('Model trained');
+    console.log("Model trained");
+  };
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputText(e.target.value);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleRunModel();
+    }
   };
 
   const handleRunModel = () => {
@@ -45,18 +55,23 @@ const ButtonComponent: React.FC = () => {
 
   const handleSaveModel = async () => {
     if (model) {
-      const modelName = prompt('Enter a name for the model:');
+      const modelName = prompt("Enter a name for the model:");
       if (modelName) {
         await model.save(`localstorage://${modelName}`);
-        console.log('Model saved to storage');
+        console.log("Model saved to storage");
       }
     }
   };
 
   return (
     <div>
+      <input
+        type="text"
+        value={inputText}
+        onChange={handleTextChange}
+        onKeyPress={handleKeyPress}
+      />
       <button onClick={handleRunModel}>Run Model</button>
-      <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} />
       <div>Prediction: {prediction}</div>
       <button onClick={handleSaveModel}>Save Model</button>
     </div>
@@ -64,4 +79,3 @@ const ButtonComponent: React.FC = () => {
 };
 
 export default ButtonComponent;
-
